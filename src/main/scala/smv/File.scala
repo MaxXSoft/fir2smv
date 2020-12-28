@@ -7,7 +7,7 @@ class File {
   private val modules = ListBuffer[Module]()
 
   // LTL specifications
-  private val ltlSpecs = ListBuffer[String]()
+  private val ltlSpecs = ListBuffer[Value]()
 
   // add a new module
   def addModule(module: Module): Unit = {
@@ -15,16 +15,18 @@ class File {
   }
 
   // add a new LTL specification
-  def addLtlSpec(spec: String): Unit = {
+  def addLtlSpec(spec: Value): Unit = {
     ltlSpecs += spec
   }
 
   // serialize
   def serialize: String = {
-    s"""${modules.map { m => m.serialize }.mkString("\n")}
+    s"""${modules.map { _.serialize }.mkString("\n")}
        |
        |MODULE main
        |  // TODO
+       |
+       |  ${ltlSpecs.map { v => s"LTLSPEC ${v.reference}" }.mkString("\n")}
      """.stripMargin
   }
 }
