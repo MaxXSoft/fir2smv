@@ -141,5 +141,5 @@ case class UnaryExpr(irType: Type, op: Op, opr: IR) extends Value {
 case class Mux(irType: Type, cond: IR, tval: IR, fval: IR) extends Value {
   override def reference: String =
     s"case ${cond.reference}: ${tval.reference}; " ++
-    s"TRUE: ${fval.reference}; esac;"
+    s"TRUE: ${fval.reference}; esac"
 }
