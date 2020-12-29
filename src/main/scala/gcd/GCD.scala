@@ -9,12 +9,12 @@ import emitter.{FirrtlEmitter, SmvEmitter}
   * Subtracts the smaller from the larger until register y is zero.
   * value in register x is then the GCD
   */
-class GCD extends Module {
+class GCD(val width: Int) extends Module {
   val io = IO(new Bundle {
-    val value1        = Input(UInt(16.W))
-    val value2        = Input(UInt(16.W))
+    val value1        = Input(UInt(width.W))
+    val value2        = Input(UInt(width.W))
     val loadingValues = Input(Bool())
-    val outputGCD     = Output(UInt(16.W))
+    val outputGCD     = Output(UInt(width.W))
     val outputValid   = Output(Bool())
   })
 
@@ -34,7 +34,7 @@ class GCD extends Module {
 }
 
 object GCD extends App {
-  val circuit = FirrtlEmitter(() => new GCD)
+  val circuit = FirrtlEmitter(() => new GCD(5))
   val smvFile = SmvEmitter(circuit)
   println(smvFile.serialize)
 }
