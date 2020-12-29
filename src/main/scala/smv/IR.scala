@@ -89,6 +89,7 @@ case class Wire(irType: Type, name: String) extends Variable
 
 // all supported operators
 sealed abstract class Op(val name: String)
+case object Nop extends Op("")
 case object Not extends Op("!")
 case object And extends Op("&")
 case object Or extends Op("|")
@@ -128,13 +129,16 @@ case class BinaryExpr(irType: Type, op: Op,
                       lhs: IR, rhs: IR) extends Value {
   private def getResized = OpExpr.getResized(irType, _)
   override def reference: String =
-    s"${getResized(lhs)} ${op.name} ${getResized(rhs)}"
+    s"(${getResized(lhs)} ${op.name} ${getResized(rhs)})"
 }
 
 // representing a unary expression
 case class UnaryExpr(irType: Type, op: Op, opr: IR) extends Value {
   private def getResized = OpExpr.getResized(irType, _)
-  override def reference: String = s"${op.name}${getResized(opr)}"
+  override def reference: String = op match {
+    case Nop => s"${getResized(opr)}"
+    case _ => s"${op.name} ${getResized(opr)}"
+  }
 }
 
 // representing a mux
@@ -142,4 +146,9 @@ case class Mux(irType: Type, cond: IR, tval: IR, fval: IR) extends Value {
   override def reference: String =
     s"case ${cond.reference}: ${tval.reference}; " ++
     s"TRUE: ${fval.reference}; esac"
+}
+
+// representing a reference of another value
+case class Ref(irType: Type, name: String) extends Value {
+  override def reference: String = name
 }
