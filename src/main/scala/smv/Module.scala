@@ -39,12 +39,19 @@ class Module(val name: String) {
   def getReg(name: String): Option[Register] = regs.get(name)
 
   // add a wire declaration
-  def addWire(name: String, wireType: Type): Unit = {
-    wires += (name -> Wire(wireType, name))
+  def addWire(name: String, value: IR): Unit = {
+    val wire = Wire(value.irType, name)
+    wire.connect = Some(value)
+    wires += (name -> wire)
   }
 
   // get the specific wire declaration
   def getWire(name: String): Option[Wire] = wires.get(name)
+
+  // get the specific variable
+  def getVariable(name: String): Option[Variable] = {
+    wires.get(name) orElse regs.get(name) orElse ports.get(name)
+  }
 
   // serialize
   def serialize: String = {
@@ -54,7 +61,7 @@ class Module(val name: String) {
     def flattenAssign[_ <: Variable](ms: HashMap[String, _]*): String = {
       ms.filter { !_.isEmpty }.flatMap {
         _.map { case (_, ir) => ir.asInstanceOf[Variable].assignment }
-         .filter { _ != None }
+         .filter { _ != None }.map { _.get }
       }.mkString("\n    ")
     }
 
