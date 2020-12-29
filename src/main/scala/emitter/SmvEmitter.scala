@@ -53,8 +53,7 @@ object SmvEmitter {
 
   // convert Firrtl type to SMV type
   def toSmvType(t: firrtl.ir.Type): smv.Type = t match {
-    case UIntType(IntWidth(n)) => if (n == 1) { Boolean }
-                                  else { UnsignedWord(n) }
+    case UIntType(IntWidth(n)) => if (n == 1) Boolean else UnsignedWord(n)
     case SIntType(IntWidth(n)) => SignedWord(n)
   }
 
