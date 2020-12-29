@@ -43,7 +43,7 @@ case class WordLiteral(irType: Type, value: BigInt) extends Value {
 // boolean literal
 case class BooleanLiteral(irType: Type, value: Boolean) extends Value {
   override def reference: String = irType match {
-    case Boolean => if (value) { "TRUE" } else { "FALSE" }
+    case Boolean => if (value) "TRUE" else "FALSE"
     case _ => ???
   }
 }
@@ -79,7 +79,7 @@ case class Register(irType: Type, name: String,
     } else if (resetValue) {
       Some(s"next(${name}) := ${init.reference};")
     } else {
-      Some(s"next(${name}) := ${nextValue}")
+      Some(s"next(${name}) := ${nextValue};")
     }
   }
 }
@@ -115,26 +115,60 @@ case object Cat extends Op("::")
 
 // some internal methods for binary/unary expressions
 private object OpExpr {
-  def getResized(irType: Type, value: IR): String = {
-    if (value.irType.width != irType.width) {
-      s"resize(${value.reference}, ${irType.width})"
+  private def shouldBeResized(op: Op): Boolean = op match {
+    case Nop | Add | Sub | Mul | Div | Mod | Shl | Shr |
+         Neg | And | Or | Xor | Xnor => true
+    case _ => false
+  }
+
+  // resize value to the specific width
+  private def resizeTo(value: IR, width: BigInt): String = value match {
+    case WordLiteral(irType, value) => {
+      if (width == 1) {
+        // to boolean
+        if (value != 0) "TRUE" else "FLASE"
+      } else {
+        // to another word
+        WordLiteral(irType.asWidth(width), value).reference
+      }
+    }
+    case BooleanLiteral(irType, value) => {
+      require(width != 1)
+      WordLiteral(irType.asWidth(width), if (value) 1 else 0).reference
+    }
+    case _ => s"resize(${value.reference}, ${width})"
+  }
+
+  def getResized(refWidth: BigInt, irType: Type, op: Op)
+                (value: IR): String = {
+    if (value.irType.width != refWidth) {
+      resizeTo(value, refWidth)
+    } else if (shouldBeResized(op) && value.irType.width != irType.width) {
+      resizeTo(value, irType.width)
     } else {
       value.reference
     }
+  }
+
+  def getResized(irType: Type, op: Op)(value: IR): String = {
+    getResized(value.irType.width, irType, op)(value)
   }
 }
 
 // representing a binary expression
 case class BinaryExpr(irType: Type, op: Op,
                       lhs: IR, rhs: IR) extends Value {
-  private def getResized = OpExpr.getResized(irType, _)
+  private def getResized = {
+    val width = lhs.irType.width.max(rhs.irType.width)
+    OpExpr.getResized(width, irType, op)(_)
+  }
   override def reference: String =
     s"(${getResized(lhs)} ${op.name} ${getResized(rhs)})"
 }
 
 // representing a unary expression
 case class UnaryExpr(irType: Type, op: Op, opr: IR) extends Value {
-  private def getResized = OpExpr.getResized(irType, _)
+  private def getResized = OpExpr.getResized(irType, op)(_)
   override def reference: String = op match {
     case Nop => s"${getResized(opr)}"
     case _ => s"${op.name} ${getResized(opr)}"
