@@ -98,6 +98,7 @@ private object OpExpr {
   // resize value to the specific width
   private def resizeTo(value: IR, width: BigInt): String = value match {
     case WordLiteral(irType, value) => {
+      require(width >= 1, "invalid target width")
       if (width == 1) {
         // to boolean
         if (value != 0) "TRUE" else "FLASE"
@@ -107,7 +108,7 @@ private object OpExpr {
       }
     }
     case BooleanLiteral(irType, value) => {
-      require(width != 1)
+      require(width > 1, "invalid target width")
       WordLiteral(irType.asWidth(width), if (value) 1 else 0).reference
     }
     case _ => s"resize(${value.reference}, $width)"
