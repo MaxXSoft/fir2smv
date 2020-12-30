@@ -15,18 +15,36 @@ class File {
   }
 
   // add a new LTL specification
-  def addLtlSpec(spec: Value): Unit = {
+  def addLtlSpec[T](spec: Value): Unit = {
     ltlSpecs += spec
   }
 
   // serialize
   def serialize: String = {
-    s"""${modules.map { _.serialize }.mkString("\n")}
+    val moduleDefs = modules.map { _.serialize }.mkString("\n")
+    val moduleInsts = modules.map {
+      m => s"${File.getInstanceName(m.name)}: ${m.name};"
+    }.mkString("\n")
+    val ltlSpecStr = ltlSpecs.map {
+      v => s"LTLSPEC ${v.reference}"
+    }.mkString("\n")
+
+    s"""$moduleDefs
        |
        |MODULE main
-       |  // TODO
+       |  VAR
+       |    $moduleInsts
        |
-       |  ${ltlSpecs.map { v => s"LTLSPEC ${v.reference}" }.mkString("\n")}
+       |  $ltlSpecStr
      """.stripMargin
+  }
+}
+
+object File {
+  // get instance name by module name
+  def getInstanceName(name: String): String = {
+    val s = name.replaceAll("([A-Z]+)([A-Z][a-z])", "$1_$2")
+                .replaceAll("([a-z\\d])([A-Z])", "$1_$2").toLowerCase
+    s"$$$s"
   }
 }
