@@ -3,8 +3,6 @@ package gcd
 import chisel3._
 import chisel3.util.Decoupled
 
-import emitter.{FirrtlEmitter, SmvEmitter}
-
 class GcdInputBundle(val w: Int) extends Bundle {
   val value1 = UInt(w.W)
   val value2 = UInt(w.W)
@@ -73,7 +71,23 @@ class DecoupledGCD(width: Int) extends MultiIOModule {
 }
 
 object DecoupledGCD extends App {
+  import emitter.{FirrtlEmitter, SmvEmitter}
+  import smv.ltl._
+
   val circuit = FirrtlEmitter(() => new DecoupledGCD(5))
   val smvFile = SmvEmitter(circuit)
+
+  val reset = AnyRef[DecoupledGCD]("reset")
+  val iready = Ref[DecoupledGCD](_.input.ready)
+  val ivalid = Ref[DecoupledGCD](_.input.valid)
+  val oready = Ref[DecoupledGCD](_.output.ready)
+  val ovalid = Ref[DecoupledGCD](_.output.valid)
+  val condReset = reset === true.LB & X(G(reset === false.LB))
+  val condReady = iready === true.LB
+  val condValid = ivalid === true.LB & X(G(ivalid === false.LB))
+  val condOutput = G(oready === true.LB)
+  val cond = condReset & X(condReady & condValid & condOutput)
+  smvFile.addLtlSpec(cond -> F(ovalid === true.LB))
+
   println(smvFile.serialize)
 }
