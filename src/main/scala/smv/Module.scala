@@ -1,6 +1,6 @@
 package smv
 
-import scala.collection.mutable.HashMap
+import scala.collection.mutable.{ListBuffer, HashMap}
 
 // representing a SMV module
 class Module(val name: String) {
@@ -8,13 +8,16 @@ class Module(val name: String) {
   private var clock: Option[String] = None
 
   // all port variable declarations
-  private val ports = HashMap[String, Port]()
+  private val ports = ListBuffer[Port]()
 
   // all register variable declarations
-  private val regs = HashMap[String, Register]()
+  private val regs = ListBuffer[Register]()
 
   // all wire variable declarations
-  private val wires = HashMap[String, Wire]()
+  private val wires = ListBuffer[Wire]()
+
+  // all declared variables
+  private val vars = HashMap[String, Variable]()
 
   // check clock in current module
   def checkClock(name: String): Unit = clock match {
@@ -24,48 +27,42 @@ class Module(val name: String) {
 
   // add a port declaration
   def addPort(name: String, portType: Type): Unit = {
-    ports += (name -> Port(portType, name))
+    val port = Port(portType, name)
+    ports += port
+    vars += (name -> port)
   }
-
-  // get the specific port declaration
-  def getPort(name: String): Option[Port] = ports.get(name)
 
   // add a register declaration
   def addReg(name: String, regType: Type, reset: IR, init: IR): Unit = {
-    regs += (name -> Register(regType, name, reset, init))
+    val reg = Register(regType, name, reset, init)
+    regs += reg
+    vars += (name -> reg)
   }
-
-  // get the specific register declaration
-  def getReg(name: String): Option[Register] = regs.get(name)
 
   // add a wire declaration
   def addWire(name: String, value: IR): Unit = {
     val wire = Wire(value.irType, name)
     wire.connect = Some(value)
-    wires += (name -> wire)
+    wires += wire
+    vars += (name -> wire)
   }
-
-  // get the specific wire declaration
-  def getWire(name: String): Option[Wire] = wires.get(name)
 
   // get the specific variable
-  def getVariable(name: String): Option[Variable] = {
-    wires.get(name) orElse regs.get(name) orElse ports.get(name)
-  }
+  def getVariable(name: String): Option[Variable] = vars.get(name)
 
   // serialize
   def serialize: String = {
-    def flattenDeclaration[T <: Variable](m: HashMap[String, T]): String =
-      m.map { case (_, ir) => ir.declaration }.mkString("\n    ")
+    def flattenDeclaration[T <: Variable](m: ListBuffer[T]): String =
+      m.map { case ir => ir.declaration }.mkString("\n    ")
 
-    def flattenAssign[_ <: Variable](ms: HashMap[String, _]*): String = {
+    def flattenAssign[_ <: Variable](ms: ListBuffer[_]*): String = {
       ms.filter { !_.isEmpty }.flatMap {
-        _.map { case (_, ir) => ir.asInstanceOf[Variable].assignment }
+        _.map { case ir => ir.asInstanceOf[Variable].assignment }
          .filter { _ != None }.map { _.get }
       }.mkString("\n    ")
     }
 
-    s"""MODULE ${name}
+    s"""MODULE $name
        |  VAR
        |    -- Ports
        |    ${flattenDeclaration(ports)}
