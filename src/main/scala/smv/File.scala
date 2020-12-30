@@ -7,7 +7,7 @@ class File {
   private val modules = ListBuffer[Module]()
 
   // LTL specifications
-  private val ltlSpecs = ListBuffer[Value]()
+  private val ltlSpecs = ListBuffer[ltl.Value]()
 
   // add a new module
   def addModule(module: Module): Unit = {
@@ -15,7 +15,7 @@ class File {
   }
 
   // add a new LTL specification
-  def addLtlSpec[T](spec: Value): Unit = {
+  def addLtlSpec[T](spec: ltl.Value): Unit = {
     ltlSpecs += spec
   }
 
@@ -26,7 +26,7 @@ class File {
       m => s"${File.getInstanceName(m.name)}: ${m.name};"
     }.mkString("\n")
     val ltlSpecStr = ltlSpecs.map {
-      v => s"LTLSPEC ${v.reference}"
+      v => s"LTLSPEC ${v.serialize}"
     }.mkString("\n")
 
     s"""$moduleDefs
@@ -45,6 +45,6 @@ object File {
   def getInstanceName(name: String): String = {
     val s = name.replaceAll("([A-Z]+)([A-Z][a-z])", "$1_$2")
                 .replaceAll("([a-z\\d])([A-Z])", "$1_$2").toLowerCase
-    s"$$$s"
+    s"$s"
   }
 }
