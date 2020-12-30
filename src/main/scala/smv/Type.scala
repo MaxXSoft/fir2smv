@@ -29,7 +29,7 @@ case class UnsignedWord(n: BigInt) extends Type {
       UnsignedWord(width)
     }
   }
-  override def serialize: String = s"unsigned word[${n}]"
+  override def serialize: String = s"unsigned word[$n]"
 }
 
 // signed word[N] type
@@ -42,5 +42,5 @@ case class SignedWord(n: BigInt) extends Type {
       SignedWord(width)
     }
   }
-  override def serialize: String = s"signed word[${n}]"
+  override def serialize: String = s"signed word[$n]"
 }

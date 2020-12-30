@@ -22,11 +22,11 @@ sealed trait Variable extends IR {
   override def reference: String = name
 
   // declaration of the current variable
-  def declaration: String = s"${name}: ${irType.serialize};"
+  def declaration: String = s"$name: ${irType.serialize};"
 
   // assignment expression of the current variable
   def assignment: Option[String] = connect match {
-    case Some(value) => Some(s"${name} := ${value.reference};")
+    case Some(value) => Some(s"$name := ${value.reference};")
     case None => None
   }
 }
@@ -34,8 +34,8 @@ sealed trait Variable extends IR {
 // word literal
 case class WordLiteral(irType: Type, value: BigInt) extends Value {
   override def reference: String = irType match {
-    case UnsignedWord(n) => s"0ud${n}_${value}"
-    case SignedWord(n) => s"0sd${n}_${value}"
+    case UnsignedWord(n) => s"0ud${n}_$value"
+    case SignedWord(n) => s"0sd${n}_$value"
     case _ => ???
   }
 }
@@ -73,13 +73,13 @@ case class Register(irType: Type, name: String,
       case None => name
     }
     if (needReset) {
-      Some(s"next(${name}) := case " ++
+      Some(s"next($name) := case " ++
            s"${reset.reference}: ${init.reference}; " ++
-           s"TRUE: ${nextValue}; esac;")
+           s"TRUE: $nextValue; esac;")
     } else if (resetValue) {
-      Some(s"next(${name}) := ${init.reference};")
+      Some(s"next($name) := ${init.reference};")
     } else {
-      Some(s"next(${name}) := ${nextValue};")
+      Some(s"next($name) := $nextValue;")
     }
   }
 }
@@ -136,7 +136,7 @@ private object OpExpr {
       require(width != 1)
       WordLiteral(irType.asWidth(width), if (value) 1 else 0).reference
     }
-    case _ => s"resize(${value.reference}, ${width})"
+    case _ => s"resize(${value.reference}, $width)"
   }
 
   def getResized(refWidth: BigInt, irType: Type, op: Op)
