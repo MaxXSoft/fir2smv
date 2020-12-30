@@ -2,8 +2,6 @@ package gcd
 
 import chisel3._
 
-import emitter.{FirrtlEmitter, SmvEmitter}
-
 /**
   * Compute GCD using subtraction method.
   * Subtracts the smaller from the larger until register y is zero.
@@ -34,7 +32,16 @@ class GCD(val width: Int) extends Module {
 }
 
 object GCD extends App {
+  import emitter.{FirrtlEmitter, SmvEmitter}
+  import smv.ltl._
+
   val circuit = FirrtlEmitter(() => new GCD(5))
   val smvFile = SmvEmitter(circuit)
+
+  val start = Ref[GCD](_.io.loadingValues)
+  val end = Ref[GCD](_.io.outputValid)
+  val cond = start === true.LB & X(G(start === false.LB))
+  smvFile.addLtlSpec(cond -> F(end === true.LB))
+
   println(smvFile.serialize)
 }
