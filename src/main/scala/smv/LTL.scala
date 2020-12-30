@@ -2,7 +2,9 @@ package smv
 
 import chisel3.{RawModule, Bits}
 
-package ltl {
+package object ltl {
+
+import scala.language.implicitConversions
 
 // trait of all LTL values
 sealed trait Value {
@@ -79,8 +81,8 @@ object Ref {
 }
 
 // reference of any value
-case class AnyRef(value: String) extends Value {
-  override def serialize: String = value
+case class AnyRef(name: String) extends Value {
+  override def serialize: String = name
 }
 
 // binary operation
@@ -91,6 +93,44 @@ case class BinaryExpr(op: Op, lhs: Value, rhs: Value) extends Value {
 // unary operation
 case class UnaryExpr(op: Op, opr: Value) extends Value {
   def serialize: String = s"${op.name} ${opr.serialize}"
+}
+
+// boolean value
+case class Bool(value: Boolean) extends Value {
+  def serialize: String = if (value) "TRUE" else "FALSE"
+}
+
+// unsigned word value
+case class UWord(value: BigInt, width: BigInt) extends Value {
+  def serialize: String = s"0ud${width}_$value"
+}
+
+// signed word value
+case class SWord(value: BigInt, width: BigInt) extends Value {
+  def serialize: String = s"0sd${width}_$value"
+}
+
+// implicit converters
+implicit class FromBigIntToLtlValue(value: BigInt) {
+  def LU(width: BigInt): UWord = {
+    require(width > 1, "width must be greater than 1")
+    new UWord(value, width)
+  }
+
+  def LS(width: BigInt): SWord = {
+    require(width > 1, "width must be greater than 1")
+    new SWord(value, width)
+  }
+}
+
+implicit class FromIntToLtlValue(value: Int)
+         extends FromBigIntToLtlValue(value)
+
+implicit class FromLongToLtlValue(value: Long)
+         extends FromBigIntToLtlValue(value)
+
+implicit class FromBooleanToLtlValue(value: Boolean) {
+  def LB: Bool = new Bool(value)
 }
 
 }  // package ltl
