@@ -87,32 +87,6 @@ case class Register(irType: Type, name: String,
 // representing a wire
 case class Wire(irType: Type, name: String) extends Variable
 
-// all supported operators
-sealed abstract class Op(val name: String)
-case object Nop extends Op("")
-case object Not extends Op("!")
-case object And extends Op("&")
-case object Or extends Op("|")
-case object Xor extends Op("xor")
-case object Xnor extends Op("xnor")
-case object Imply extends Op("->")
-case object Equiv extends Op("<->")
-case object Equal extends Op("=")
-case object NotEqual extends Op("!=")
-case object Lt extends Op("<")
-case object Gt extends Op(">")
-case object Le extends Op("<=")
-case object Ge extends Op(">=")
-case object Neg extends Op("-")
-case object Add extends Op("+")
-case object Sub extends Op("-")
-case object Mul extends Op("*")
-case object Div extends Op("/")
-case object Mod extends Op("mod")
-case object Shr extends Op(">>")
-case object Shl extends Op("<<")
-case object Cat extends Op("::")
-
 // some internal methods for binary/unary expressions
 private object OpExpr {
   private def shouldBeResized(op: Op): Boolean = op match {
