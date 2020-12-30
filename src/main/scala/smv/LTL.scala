@@ -85,6 +85,15 @@ case class AnyRef(name: String) extends Value {
   override def serialize: String = name
 }
 
+object AnyRef {
+  import scala.reflect.ClassTag
+
+  def apply[T <: RawModule: ClassTag](name: String): AnyRef = {
+    val moduleName = implicitly[ClassTag[T]].runtimeClass.getSimpleName
+    new AnyRef(s"${File.getInstanceName(moduleName)}.$name")
+  }
+}
+
 // binary operation
 case class BinaryExpr(op: Op, lhs: Value, rhs: Value) extends Value {
   def serialize: String = s"(${lhs.serialize} ${op.name} ${rhs.serialize})"
