@@ -51,6 +51,28 @@ object F {
   def apply(that: Value): Value = UnaryExpr(Final, that)
 }
 
+// 'Exists' operator
+object E {
+  def apply(that: Value): Value = that match {
+    case UnaryExpr(Next, opr) => UnaryExpr(ENext, opr)
+    case UnaryExpr(Global, opr) => UnaryExpr(EGlobal, opr)
+    case UnaryExpr(Final, opr) => UnaryExpr(EFinal, opr)
+    case BinaryExpr(Until, lhs, rhs) => BinaryExpr(EUntil, lhs, rhs)
+    case _ => ???
+  }
+}
+
+// 'ForAll' operator
+object A {
+  def apply(that: Value): Value = that match {
+    case UnaryExpr(Next, opr) => UnaryExpr(ANext, opr)
+    case UnaryExpr(Global, opr) => UnaryExpr(AGlobal, opr)
+    case UnaryExpr(Final, opr) => UnaryExpr(AFinal, opr)
+    case BinaryExpr(Until, lhs, rhs) => BinaryExpr(AUntil, lhs, rhs)
+    case _ => ???
+  }
+}
+
 
 // reference of a 'chisel3.Bits'
 case class Ref(name: String) extends Value {
@@ -96,7 +118,11 @@ object AnyRef {
 
 // binary operation
 case class BinaryExpr(op: Op, lhs: Value, rhs: Value) extends Value {
-  def serialize: String = s"(${lhs.serialize} ${op.name} ${rhs.serialize})"
+  def serialize: String = op match {
+    case EUntil => s"E [${lhs.serialize} U ${rhs.serialize}]"
+    case AUntil => s"A [${lhs.serialize} U ${rhs.serialize}]"
+    case _ => s"(${lhs.serialize} ${op.name} ${rhs.serialize})"
+  }
 }
 
 // unary operation
