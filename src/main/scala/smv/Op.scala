@@ -1,7 +1,7 @@
 package smv
 
 // all supported operators
-// shared by SMV & LTL related stuffs
+// shared by SMV, LTL, CTL related stuffs
 sealed abstract class Op(val name: String)
 case object Nop extends Op("")
 case object Not extends Op("!")
@@ -30,3 +30,11 @@ case object Next extends Op("X")
 case object Global extends Op("G")
 case object Final extends Op("F")
 case object Until extends Op("U")
+case object ENext extends Op("EX")
+case object EGlobal extends Op("EG")
+case object EFinal extends Op("EF")
+case object EUntil extends Op("EU")
+case object ANext extends Op("AX")
+case object AGlobal extends Op("AG")
+case object AFinal extends Op("AF")
+case object AUntil extends Op("AU")
