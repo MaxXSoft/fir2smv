@@ -7,7 +7,10 @@ class File {
   private val modules = ListBuffer[Module]()
 
   // LTL specifications
-  private val ltlSpecs = ListBuffer[ltl.Value]()
+  private val ltlSpecs = ListBuffer[spec.Value]()
+
+  // CTL specifications
+  private val ctlSpecs = ListBuffer[spec.Value]()
 
   // add a new module
   def addModule(module: Module): Unit = {
@@ -15,8 +18,13 @@ class File {
   }
 
   // add a new LTL specification
-  def addLtlSpec[T](spec: ltl.Value): Unit = {
-    ltlSpecs += spec
+  def addLtlSpec[T](value: spec.Value): Unit = {
+    ltlSpecs += value
+  }
+
+  // add a new CTL specification
+  def addCtlSpec[T](value: spec.Value): Unit = {
+    ctlSpecs += value
   }
 
   // serialize
@@ -25,9 +33,11 @@ class File {
     val moduleInsts = modules.map {
       m => s"${File.getInstanceName(m.name)}: ${m.name};"
     }.mkString("\n")
-    val ltlSpecStr = ltlSpecs.map {
+    val specStr = (ltlSpecs.map {
       v => s"LTLSPEC ${v.serialize}"
-    }.mkString("\n")
+    } ++ ctlSpecs.map {
+      v => s"CTLSPEC ${v.serialize}"
+    }).mkString("\n")
 
     s"""$moduleDefs
        |
@@ -35,7 +45,7 @@ class File {
        |  VAR
        |    $moduleInsts
        |
-       |  $ltlSpecStr
+       |  $specStr
      """.stripMargin
   }
 }
