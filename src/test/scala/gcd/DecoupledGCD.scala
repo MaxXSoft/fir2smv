@@ -72,7 +72,7 @@ class DecoupledGCD(width: Int) extends MultiIOModule {
 
 object DecoupledGCD extends App {
   import emitter.{FirrtlEmitter, SmvEmitter}
-  import smv.ltl._
+  import smv.spec._
 
   val circuit = FirrtlEmitter(() => new DecoupledGCD(5))
   val smvFile = SmvEmitter(circuit)

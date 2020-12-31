@@ -33,7 +33,7 @@ class GCD(val width: Int) extends Module {
 
 object GCD extends App {
   import emitter.{FirrtlEmitter, SmvEmitter}
-  import smv.ltl._
+  import smv.spec._
 
   val circuit = FirrtlEmitter(() => new GCD(5))
   val smvFile = SmvEmitter(circuit)
