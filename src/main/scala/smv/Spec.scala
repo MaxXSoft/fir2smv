@@ -2,11 +2,11 @@ package smv
 
 import chisel3.{RawModule, Bits}
 
-package object ltl {
+package object spec {
 
 import scala.language.implicitConversions
 
-// trait of all LTL values
+// trait of all LTL/CTL values
 sealed trait Value {
   def serialize: String
 
@@ -120,7 +120,7 @@ case class SWord(value: BigInt, width: BigInt) extends Value {
 }
 
 // implicit converters
-implicit class FromBigIntToLtlValue(value: BigInt) {
+implicit class FromBigIntToSpecValue(value: BigInt) {
   def LU(width: BigInt): UWord = {
     require(width > 1, "width must be greater than 1")
     new UWord(value, width)
@@ -132,14 +132,14 @@ implicit class FromBigIntToLtlValue(value: BigInt) {
   }
 }
 
-implicit class FromIntToLtlValue(value: Int)
-         extends FromBigIntToLtlValue(value)
+implicit class FromIntToSpecValue(value: Int)
+         extends FromBigIntToSpecValue(value)
 
-implicit class FromLongToLtlValue(value: Long)
-         extends FromBigIntToLtlValue(value)
+implicit class FromLongToSpecValue(value: Long)
+         extends FromBigIntToSpecValue(value)
 
-implicit class FromBooleanToLtlValue(value: Boolean) {
+implicit class FromBooleanToSpecValue(value: Boolean) {
   def LB: Bool = new Bool(value)
 }
 
-}  // package ltl
+}  // package spec
