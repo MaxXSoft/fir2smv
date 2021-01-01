@@ -73,9 +73,8 @@ case class Register(irType: Type, name: String,
       case None => name
     }
     if (needReset) {
-      Some(s"next($name) := case " ++
-           s"${reset.reference}: ${init.reference}; " ++
-           s"TRUE: $nextValue; esac;")
+      Some(s"next($name) := ${reset.reference} ? " ++
+           s"${init.reference} : $nextValue;")
     } else if (resetValue) {
       Some(s"next($name) := ${init.reference};")
     } else {
@@ -153,8 +152,7 @@ case class UnaryExpr(irType: Type, op: Op, opr: IR) extends Value {
 // representing a mux
 case class Mux(irType: Type, cond: IR, tval: IR, fval: IR) extends Value {
   override def reference: String =
-    s"case ${cond.reference}: ${tval.reference}; " ++
-    s"TRUE: ${fval.reference}; esac"
+    s"${cond.reference} ? ${tval.reference} : ${fval.reference};"
 }
 
 // representing a reference of another value
