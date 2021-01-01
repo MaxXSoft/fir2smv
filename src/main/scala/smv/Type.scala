@@ -3,6 +3,7 @@ package smv
 sealed trait Type {
   def width: BigInt
   def asWidth(width: BigInt): Type
+  def shortName: String
   def serialize: String
 }
 
@@ -16,6 +17,7 @@ case object Boolean extends Type {
       UnsignedWord(width)
     }
   }
+  override def shortName: String = "b"
   override def serialize: String = "boolean"
 }
 
@@ -29,6 +31,7 @@ case class UnsignedWord(n: BigInt) extends Type {
       UnsignedWord(width)
     }
   }
+  override def shortName: String = s"u$n"
   override def serialize: String = s"unsigned word[$n]"
 }
 
@@ -42,6 +45,7 @@ case class SignedWord(n: BigInt) extends Type {
       SignedWord(width)
     }
   }
+  override def shortName: String = s"s$n"
   override def serialize: String = s"signed word[$n]"
 }
 
@@ -50,5 +54,6 @@ case class SignedWord(n: BigInt) extends Type {
 case object AnyType extends Type {
   override def width: BigInt = 0
   override def asWidth(width: BigInt): Type = AnyType
+  override def shortName: String = ???
   override def serialize: String = ???
 }
