@@ -44,3 +44,11 @@ case class SignedWord(n: BigInt) extends Type {
   }
   override def serialize: String = s"signed word[$n]"
 }
+
+// any other types
+// no operations can be performed on this type
+case object AnyType extends Type {
+  override def width: BigInt = 0
+  override def asWidth(width: BigInt): Type = AnyType
+  override def serialize: String = ???
+}
