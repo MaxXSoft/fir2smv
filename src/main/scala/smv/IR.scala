@@ -92,7 +92,7 @@ case class MemoryPort(irType: Type, name: String) extends Variable
 // some internal methods for binary/unary expressions
 private object OpExpr {
   private def shouldBeResized(op: Op): Boolean = op match {
-    case Nop | Add | Sub | Mul | Div | Mod | Shl | Shr |
+    case Nop | Add | Sub | Mul | Div | Mod |
          Neg | And | Or | Xor | Xnor => true
     case _ => false
   }
@@ -161,4 +161,27 @@ case class Mux(irType: Type, cond: IR, tval: IR, fval: IR) extends Value {
 // representing a reference of another value
 case class Ref(irType: Type, name: String) extends Value {
   override def reference: String = name
+}
+
+// representing bits selection
+case class BitsSel(irType: Type, value: IR,
+                   hi: BigInt, lo: BigInt) extends Value {
+  override def reference: String = {
+    if (hi == lo) {
+      s"bool(${value.reference}[$hi:$lo])"
+    } else {
+      s"${value.reference}[$hi:$lo]"
+    }
+  }
+}
+
+// representing a padding operation
+case class Pad(irType: Type, value: IR, size: BigInt) extends Value {
+  override def reference: String = {
+    if (value.irType.width < size) {
+      s"extend(${value.reference}, $size - sizeof(${value.reference}))"
+    } else {
+      value.reference
+    }
+  }
 }
