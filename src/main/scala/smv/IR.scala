@@ -86,6 +86,9 @@ case class Register(irType: Type, name: String,
 // representing a wire
 case class Wire(irType: Type, name: String) extends Variable
 
+// representing a port of memory
+case class MemoryPort(irType: Type, name: String) extends Variable
+
 // some internal methods for binary/unary expressions
 private object OpExpr {
   private def shouldBeResized(op: Op): Boolean = op match {
@@ -152,7 +155,7 @@ case class UnaryExpr(irType: Type, op: Op, opr: IR) extends Value {
 // representing a mux
 case class Mux(irType: Type, cond: IR, tval: IR, fval: IR) extends Value {
   override def reference: String =
-    s"${cond.reference} ? ${tval.reference} : ${fval.reference};"
+    s"${cond.reference} ? ${tval.reference} : ${fval.reference}"
 }
 
 // representing a reference of another value
