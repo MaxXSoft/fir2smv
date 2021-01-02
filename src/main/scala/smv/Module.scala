@@ -79,12 +79,16 @@ class Module(val file: File, val name: String) {
   // serialize
   def serialize: String = {
     def flattenVarDecl[T <: Variable](l: ListBuffer[T]): String =
-      l.map { _.declaration }.mkString("\n    ")
-
+      if (l.nonEmpty) l.map(_.declaration).mkString("\n    ") else "-- NONE"
+    
     def flattenMemDecl(l: ListBuffer[(String, Memory, Int)]) = {
-      l.map {
-        case (name, mem, awidth) => s"$name: ${mem.typeName}($awidth);"
-      }.mkString("\n    ")
+      if (l.nonEmpty) {
+        l.map {
+          case (name, mem, awidth) => s"$name: ${mem.typeName}($awidth);"
+        }.mkString("\n    ")
+      } else {
+        "-- NONE"
+      }
     }
 
     def flattenAssign[_ <: Variable](ls: ListBuffer[_]*): String = {
