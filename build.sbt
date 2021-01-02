@@ -6,7 +6,7 @@ ThisBuild / organization     := "MaxXSoft"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "chisel-playground",
+    name := "fir2smv",
     libraryDependencies ++= Seq(
       "edu.berkeley.cs" %% "chisel3" % "3.4.1",
       "edu.berkeley.cs" %% "chiseltest" % "0.3.1" % "test"
