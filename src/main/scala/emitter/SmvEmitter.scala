@@ -17,7 +17,7 @@ object SmvEmitter {
 
   // callback for traversing modules
   def walkModule(f: File)(m: DefModule): DefModule = {
-    val module = new Module(m.name)
+    val module = new Module(f, m.name)
     // traverse all ports
     m.mapPort(walkPort(module))
     // traverse all statements
@@ -43,6 +43,20 @@ object SmvEmitter {
       case Connect(_, Reference(name, _, _, _), expr) => {
         m.getVariable(name).get.connect = Some(toSmvIR(expr))
       }
+      case Connect(_, lhs: SubField, expr) => expr match {
+        // connection of 'SubField', usually a port of memory
+        case Reference(_, ClockType, _, _) => Unit  // just ignore
+        case _ => {
+          val smv.Ref(_, name) = toSmvIR(lhs)
+          require(m.getVariable(name) == None, "redefining 'SubField'")
+          m.addMemPort(name, toSmvIR(expr))
+        }
+      }
+      case DefMemory(_, name, dtype, depth, wlat, rlat,
+                     Seq(reader), Seq(writer), _, _) => {
+        m.addMemory(name, toSmvType(dtype), depth,
+                    wlat, rlat, reader, writer)
+      }
       case DefNode(_, name, value) => m.addWire(name, toSmvIR(value))
       case DefRegister(_, name, tpe, _, reset, init) => {
         m.addReg(name, toSmvType(tpe), toSmvIR(reset), toSmvIR(init))
@@ -55,6 +69,7 @@ object SmvEmitter {
   def toSmvType(t: firrtl.ir.Type): smv.Type = t match {
     case UIntType(IntWidth(n)) => if (n == 1) Boolean else UnsignedWord(n)
     case SIntType(IntWidth(n)) => SignedWord(n)
+    case BundleType(_) => smv.AnyType
   }
 
   // convert 'PrimOp' to SMV 'Op'
@@ -105,6 +120,10 @@ object SmvEmitter {
       } else {
         smv.WordLiteral(UnsignedWord(w), value)
       }
+    }
+    case SubField(expr, name, _, _) => {
+      val smv.Ref(_, ref) = toSmvIR(expr)
+      smv.Ref(smv.AnyType, s"$ref.$name")
     }
     case _ => ???
   }
