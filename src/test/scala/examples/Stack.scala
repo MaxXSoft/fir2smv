@@ -46,13 +46,20 @@ object Stack extends App {
   val dataIn = Ref[Stack](_.io.dataIn)
   val dataOut = Ref[Stack](_.io.dataOut)
 
-  // push(1234) & pop -> dataOut = 1234
+  // Verify: push 1234 and then pop, always get 1234
+  //
+  // perform reset
   val condReset = reset === true.LB & X(G(reset === false.LB))
+  // enable only in the first two cycles
   val condEn = en === true.LB & X(en === true.LB & X(G(en === false.LB)))
+  // push 1234 in current cycle, and release push signal in next cycle
   val condPush = push === true.LB & dataIn === 1234.LU(32) &
                  X(G(push === false.LB))
+  // pop a value in current cycle, and release pop signal in next cycle
   val condPop = pop === true.LB & X(G(pop === false.LB))
+  // the condition: reset first, then push and pop
   val cond = condReset & X(condPush & condEn & X(condPop))
+  // the result: we will get 1234 in the third cycle
   val result = X(X(X(G(dataOut === 1234.LU(32)))))
   smvFile.addLtlSpec(cond -> result)
 
