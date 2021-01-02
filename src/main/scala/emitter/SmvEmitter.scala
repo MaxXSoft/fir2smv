@@ -91,8 +91,8 @@ object SmvEmitter {
     case PrimOps.Mul => (smv.Mul, true)
     case PrimOps.Div => (smv.Div, true)
     case PrimOps.Rem => (smv.Mod, true)
-    case PrimOps.Shr | PrimOps.Dshr => (smv.Shr, true)
-    case PrimOps.Shl | PrimOps.Dshl => (smv.Shl, true)
+    case PrimOps.Dshr => (smv.Shr, true)
+    case PrimOps.Dshl => (smv.Shl, true)
     case PrimOps.Cat => (smv.Cat, true)
     case PrimOps.Tail => (smv.Nop, false)
     case _ => ???
@@ -100,12 +100,24 @@ object SmvEmitter {
 
   // convert expression to SMV IR
   def toSmvIR(e: Expression): IR = e match {
-    case DoPrim(op, args, _, tpe) => toSmvOp(op) match {
-      case (sop, true) => smv.BinaryExpr(toSmvType(tpe), sop,
-                                         toSmvIR(args(0)),
-                                         toSmvIR(args(1)))
-      case (sop, false) => smv.UnaryExpr(toSmvType(tpe), sop,
-                                         toSmvIR(args(0)))
+    case DoPrim(op, args, consts, tpe) => op match {
+      case PrimOps.Bits => smv.BitsSel(toSmvType(tpe), toSmvIR(args(0)),
+                                       consts(0), consts(1))
+      case PrimOps.Shl | PrimOps.Shr => {
+        val irType = toSmvType(tpe)
+        val lhs = toSmvIR(args(0))
+        val rhs = smv.WordLiteral(irType, consts(0))
+        smv.BinaryExpr(irType, if (op == PrimOps.Shl) smv.Shl else smv.Shr,
+                       lhs, rhs)
+      }
+      case PrimOps.Pad => smv.Pad(toSmvType(tpe), toSmvIR(args(0)), consts(0))
+      case _ => toSmvOp(op) match {
+        case (sop, true) => smv.BinaryExpr(toSmvType(tpe), sop,
+                                           toSmvIR(args(0)),
+                                           toSmvIR(args(1)))
+        case (sop, false) => smv.UnaryExpr(toSmvType(tpe), sop,
+                                           toSmvIR(args(0)))
+      }
     }
     case Mux(cond, tval, fval, tpe) => smv.Mux(toSmvType(tpe),
                                                toSmvIR(cond),
